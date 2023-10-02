@@ -42,6 +42,8 @@ function App() {
     if (statusCode1 == 500) {
       setErrorMessage(data.error);
       setShowError(true);
+      setResponseToken("");
+      setResponseTree("");
       return;
     } else {
       setShowError(false);
@@ -100,6 +102,8 @@ function App() {
     if (statusCode2 == 500) {
       setErrorMessage(data2.error);
       setShowError(true);
+      setResponseToken("");
+      setResponseTree("");
       return;
     } else {
       setShowError(false);
