@@ -3,14 +3,19 @@ import { AiOutlineCloudUpload } from "react-icons/ai";
 
 function App() {
   const [message, setMessage] = useState("");
-  const [response, setResponse] = useState("");
+
+  const [responseToken, setResponseToken] = useState("");
+  const [responseTree, setResponseTree] = useState("");
+
   const [showClearButton, setShowClearButton] = useState(false);
+
+  const [isToken, setIsToken] = useState(true);
 
   const submitHandler = async (e) => {
     e.preventDefault();
     console.log("enviando");
     const response = await fetch(
-      "http://127.0.0.1:5000/helloworld",
+      "http://127.0.0.1:5000/main",
 
       {
         method: "POST",
@@ -23,14 +28,63 @@ function App() {
       }
     );
     const data = await response.json();
-    console.log(data.codigo);
-    setMessage(data.codigo);
-    setResponse(data.codigo);
+    console.log(data);
+
+    let arvore = {
+      browser: data.browser,
+      link: data.link,
+      tempo: data.tempo,
+    };
+
+    const treeShow = (
+      <div className="flex flex-col gap-2">
+        <div className="flex gap-2">
+          <p className="font-semibold">Browser</p>
+          <p className="text-green-600">{` ${arvore.browser}`}</p>
+        </div>
+        <div className="flex gap-2">
+          <p className="font-semibold">Link</p>
+          <p className="text-green-600">{` ${arvore.link}`}</p>
+        </div>
+        <div className="flex gap-2">
+          <p className="font-semibold">Tempo</p>
+          <p className="text-green-600">{` ${arvore.tempo}`}</p>
+        </div>
+      </div>
+    );
+
+    setResponseTree(treeShow);
+
+    const tokenShow = data.token.map((t) => {
+      return (
+        <div className="flex gap-2">
+          <p className="font-semibold">{`${t[0]}:`}</p>
+          <p className="text-green-600">{` ${t[1]}`}</p>
+        </div>
+      );
+    });
+
+    setResponseToken(tokenShow);
+
+    await fetch(
+      "http://127.0.0.1:5000/execute",
+
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          arvore: arvore,
+        }),
+      }
+    );
   };
 
   const clearHandler = () => {
     setMessage("");
-    setResponse("");
+    setResponseToken("");
+    setResponseTree("");
     setShowClearButton(false);
   };
 
@@ -52,9 +106,12 @@ function App() {
 
   return (
     <div className="flex flex-col items-center justify-center w-screen h-screen">
-      <h1 className="text-black text-3xl py-7 px-10 mt-5 bg-gray-100 rounded-xl">
-        Analisador Léxico
-      </h1>
+      <button
+        className="text-black text-3xl py-7 px-10 mt-5 bg-gray-100 rounded-xl hover:cursor-pointer hover:text-green-500"
+        onClick={() => setIsToken(!isToken)}
+      >
+        {isToken ? "Analisador Léxico" : "Analisador Sintático"}
+      </button>
       <form className="flex flex-col gap-10" onSubmit={submitHandler}>
         <div className="flex gap-10">
           <div>
@@ -103,7 +160,18 @@ function App() {
               className="block p-2.5 h-[65vh] w-[40vw] overflow-y-auto text-xl text-gray-900 bg-gray-200 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
               style={{ whiteSpace: "pre" }} // Add this line to preserve spaces and line breaks
             >
-              {response}
+              {isToken ? (
+                responseToken == "" ? (
+                  ""
+                ) : (
+                  <h2 className="font-bold mb-4 text-2xl">Tokens:</h2>
+                )
+              ) : responseTree == "" ? (
+                ""
+              ) : (
+                <h2 className="font-bold mb-4 text-2xl">Árvore:</h2>
+              )}
+              {isToken ? responseToken : responseTree}
             </div>
           </div>
         </div>
