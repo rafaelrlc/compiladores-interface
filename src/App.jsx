@@ -11,9 +11,16 @@ function App() {
 
   const [isToken, setIsToken] = useState(true);
 
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showError, setShowError] = useState(false);
+
   const submitHandler = async (e) => {
     e.preventDefault();
-    console.log("enviando");
+
+    if (message.trim() === "") {
+      return;
+    }
+
     const response = await fetch(
       "http://127.0.0.1:5000/main",
 
@@ -27,34 +34,43 @@ function App() {
         }),
       }
     );
+
+    const statusCode1 = response.status;
     const data = await response.json();
     console.log(data);
 
+    if (statusCode1 == 500) {
+      setErrorMessage(data.error);
+      setShowError(true);
+      return;
+    } else {
+      setShowError(false);
+      setErrorMessage("");
+    }
+
+    console.log(data);
     let arvore = {
       browser: data.browser,
       link: data.link,
       tempo: data.tempo,
     };
-
     const treeShow = (
       <div className="flex flex-col gap-2">
         <div className="flex gap-2">
-          <p className="font-semibold">Browser</p>
+          <p className="font-semibold">Browser:</p>
           <p className="text-green-600">{` ${arvore.browser}`}</p>
         </div>
         <div className="flex gap-2">
-          <p className="font-semibold">Link</p>
+          <p className="font-semibold">Link:</p>
           <p className="text-green-600">{` ${arvore.link}`}</p>
         </div>
         <div className="flex gap-2">
-          <p className="font-semibold">Tempo</p>
+          <p className="font-semibold">Tempo:</p>
           <p className="text-green-600">{` ${arvore.tempo}`}</p>
         </div>
       </div>
     );
-
     setResponseTree(treeShow);
-
     const tokenShow = data.token.map((t) => {
       return (
         <div className="flex gap-2">
@@ -63,10 +79,9 @@ function App() {
         </div>
       );
     });
-
     setResponseToken(tokenShow);
 
-    await fetch(
+    const response2 = await fetch(
       "http://127.0.0.1:5000/execute",
 
       {
@@ -79,12 +94,25 @@ function App() {
         }),
       }
     );
+
+    const statusCode2 = response2.status;
+    const data2 = await response2.json();
+    if (statusCode2 == 500) {
+      setErrorMessage(data2.error);
+      setShowError(true);
+      return;
+    } else {
+      setShowError(false);
+      setErrorMessage("");
+    }
   };
 
   const clearHandler = () => {
     setMessage("");
     setResponseToken("");
     setResponseTree("");
+    setErrorMessage("");
+    setShowError(false);
     setShowClearButton(false);
   };
 
@@ -160,6 +188,14 @@ function App() {
               className="block p-2.5 h-[65vh] w-[40vw] overflow-y-auto text-xl text-gray-900 bg-gray-200 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
               style={{ whiteSpace: "pre" }} // Add this line to preserve spaces and line breaks
             >
+              {
+                // If there is an error, show it
+                showError && (
+                  <p className="text-red-500 font-bold text-xl mb-4">
+                    {errorMessage}
+                  </p>
+                )
+              }
               {isToken ? (
                 responseToken == "" ? (
                   ""
